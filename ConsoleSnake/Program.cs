@@ -87,8 +87,7 @@ namespace ConsoleSnake
         {
             if (Coords.Count == SnakeLength)
             {
-                if (Coords.TryDequeue(out (int, int) result))
-                    ClearPixel(result);
+                ClearPixel(Coords.Dequeue());
             }
 
             var worm = new Pixel(Position.Left, Position.Top, '#');
@@ -122,12 +121,15 @@ namespace ConsoleSnake
                         break;
                 }
 
-                if (!IsValidPosition())
+                if (!IsValidPosition() || IsSnakeTale())
                     break;
 
                 if (IsApplePosition())
                 {
+                    ApplesCoords.Remove(Position);
+
                     Coords.Enqueue(Position);
+
                     SnakeLength++;
                 }
 
@@ -149,11 +151,13 @@ namespace ConsoleSnake
 
         private static bool IsApplePosition()
         {
-            var result = ApplesCoords.Any(i => i.Item1 == Position.Left && i.Item2 == Position.Top);
+            return ApplesCoords.Any(i => i.Item1 == Position.Left && i.Item2 == Position.Top);
+        }
 
-            ApplesCoords.Remove(Position);
 
-            return result;
+        private static bool IsSnakeTale()
+        {
+            return Coords.Any(i => i.Item1 == Position.Left && i.Item2 == Position.Top);
         }
 
 
