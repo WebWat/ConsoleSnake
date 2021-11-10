@@ -16,7 +16,7 @@ namespace ConsoleSnake
         }
 
 
-        public void Draw()
+        public void Draw(ConsoleColor color = ConsoleColor.White)
         {
             for (int i = 0; i < GameSettings.PixelSize; i++)
             {
@@ -26,7 +26,9 @@ namespace ConsoleSnake
 
                 Array.Fill(output, Symbol);
 
+                Console.ForegroundColor = color;
                 Console.Write(output);
+                Console.ForegroundColor = default;
             }
         }
     }

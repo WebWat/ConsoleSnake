@@ -13,6 +13,7 @@ namespace ConsoleSnake
         private static (int Left, int Top) Position = (1, 1);
         private static Queue<(int, int)> Coords = new();
         private static Random Random = new Random();
+        private static object Locker = new object();
         private static List<(int, int)> ApplesCoords = new();
         private static int SnakeLength = 1;
 
@@ -35,10 +36,6 @@ namespace ConsoleSnake
 
             Launcher.Interrupt();
 
-            Thread.Sleep(500);
-
-            Console.Clear();
-
             Console.ReadKey(true);
         }
 
@@ -49,9 +46,7 @@ namespace ConsoleSnake
 
             RenderPosition();
 
-            GenerateRandomAppleCoords(20);
-
-            RenderApples();
+            RenderApple();
 
             while (true)
             {
@@ -71,7 +66,7 @@ namespace ConsoleSnake
         {
             for (int i = 0; i < GameSettings.PixelSize; i++)
             {
-                Console.SetCursorPosition(currentPosition.Left * GameSettings.PixelSize, 
+                Console.SetCursorPosition(currentPosition.Left * GameSettings.PixelSize,
                                           currentPosition.Top * GameSettings.PixelSize + i);
 
                 char[] output = new char[GameSettings.PixelSize];
@@ -92,7 +87,7 @@ namespace ConsoleSnake
 
             var worm = new Pixel(Position.Left, Position.Top, '#');
 
-            worm.Draw();
+            worm.Draw(ConsoleColor.Blue);
         }
 
 
@@ -102,23 +97,26 @@ namespace ConsoleSnake
             {
                 Coords.Enqueue(Position);
 
-                switch (Key)
+                lock (Locker)
                 {
-                    case ConsoleKey.UpArrow:
-                        Position.Top--;
-                        break;
+                    switch (Key)
+                    {
+                        case ConsoleKey.UpArrow:
+                            Position.Top--;
+                            break;
 
-                    case ConsoleKey.DownArrow:
-                        Position.Top++;
-                        break;
+                        case ConsoleKey.DownArrow:
+                            Position.Top++;
+                            break;
 
-                    case ConsoleKey.LeftArrow:
-                        Position.Left--;
-                        break;
+                        case ConsoleKey.LeftArrow:
+                            Position.Left--;
+                            break;
 
-                    case ConsoleKey.RightArrow:
-                        Position.Left++;
-                        break;
+                        case ConsoleKey.RightArrow:
+                            Position.Left++;
+                            break;
+                    }
                 }
 
                 if (!IsValidPosition() || IsSnakeTale())
@@ -131,6 +129,8 @@ namespace ConsoleSnake
                     Coords.Enqueue(Position);
 
                     SnakeLength++;
+
+                    RenderApple();
                 }
 
                 RenderPosition();
@@ -161,28 +161,26 @@ namespace ConsoleSnake
         }
 
 
-        private static void GenerateRandomAppleCoords(int count)
+        private static (int, int) GenerateRandomAppleCoords()
         {
-            for (int i = 0; i < count; i++)
-            {
-                int top = Random.Next(2, GameSettings.MapSizeInPixels);
-                int left = Random.Next(2, GameSettings.MapSizeInPixels);
+            int top = Random.Next(2, GameSettings.MapSizeInPixels);
+            int left = Random.Next(2, GameSettings.MapSizeInPixels);
 
-                ApplesCoords.Add((left, top));
-            }
+            ApplesCoords.Add((left, top));
+
+            return (left, top);
         }
 
 
-        private static void RenderApples()
+        private static void RenderApple()
         {
             char wallSymbol = '@';
 
-            foreach (var item in ApplesCoords)
-            {
-                var pixel = new Pixel(item.Item1, item.Item2, wallSymbol);
+            var coords = GenerateRandomAppleCoords();
 
-                pixel.Draw();
-            }
+            var pixel = new Pixel(coords.Item1, coords.Item2, wallSymbol);
+
+            pixel.Draw(ConsoleColor.Green);
         }
 
 
@@ -197,6 +195,8 @@ namespace ConsoleSnake
 
                 pixel_1.Draw();
                 pixel_2.Draw();
+
+                Thread.Sleep(1);
             }
 
             for (int i = 1; i < GameSettings.MapSizeInPixels; i++)
@@ -206,6 +206,8 @@ namespace ConsoleSnake
 
                 pixel_1.Draw();
                 pixel_2.Draw();
+
+                Thread.Sleep(1);
             }
         }
     }
