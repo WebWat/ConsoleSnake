@@ -22,12 +22,8 @@ namespace ConsoleSnake
             {
                 Console.SetCursorPosition(Left * GameSettings.PixelSize, Top * GameSettings.PixelSize + i);
 
-                char[] output = new char[GameSettings.PixelSize];
-
-                Array.Fill(output, Symbol);
-
                 Console.ForegroundColor = color;
-                Console.Write(output);
+                Console.Write(new string(Symbol, GameSettings.PixelSize));
                 Console.ForegroundColor = default;
             }
         }

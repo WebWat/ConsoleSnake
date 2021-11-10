@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ConsoleSnake
 {
@@ -14,7 +13,7 @@ namespace ConsoleSnake
         private static Queue<(int, int)> Coords = new();
         private static Random Random = new Random();
         private static object Locker = new object();
-        private static List<(int, int)> ApplesCoords = new();
+        private static (int Left, int Top) AppleCoords = new();
         private static int SnakeLength = 1;
 
         private static Thread Game = new Thread(new ThreadStart(Move));
@@ -69,11 +68,7 @@ namespace ConsoleSnake
                 Console.SetCursorPosition(currentPosition.Left * GameSettings.PixelSize,
                                           currentPosition.Top * GameSettings.PixelSize + i);
 
-                char[] output = new char[GameSettings.PixelSize];
-
-                Array.Fill(output, ' ');
-
-                Console.Write(output);
+                Console.Write(new string(' ', GameSettings.PixelSize));
             }
         }
 
@@ -124,7 +119,7 @@ namespace ConsoleSnake
 
                 if (IsApplePosition())
                 {
-                    ApplesCoords.Remove(Position);
+                    AppleCoords = default;
 
                     Coords.Enqueue(Position);
 
@@ -151,7 +146,7 @@ namespace ConsoleSnake
 
         private static bool IsApplePosition()
         {
-            return ApplesCoords.Any(i => i.Item1 == Position.Left && i.Item2 == Position.Top);
+            return AppleCoords.Left == Position.Left && AppleCoords.Top == Position.Top;
         }
 
 
@@ -163,12 +158,16 @@ namespace ConsoleSnake
 
         private static (int, int) GenerateRandomAppleCoords()
         {
-            int top = Random.Next(2, GameSettings.MapSizeInPixels);
-            int left = Random.Next(2, GameSettings.MapSizeInPixels);
+            do
+            {
+                int left = Random.Next(2, GameSettings.MapSizeInPixels);
+                int top = Random.Next(2, GameSettings.MapSizeInPixels);
 
-            ApplesCoords.Add((left, top));
+                AppleCoords = (left, top);
+            }
+            while (Coords.Any(i => i.Item1 == AppleCoords.Left && i.Item2 == AppleCoords.Top));
 
-            return (left, top);
+            return AppleCoords;
         }
 
 
