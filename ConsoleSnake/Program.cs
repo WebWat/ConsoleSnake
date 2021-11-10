@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,14 +8,10 @@ namespace ConsoleSnake
 {
     class Program
     {
-        private const int ScreenWidth = 100; 
-        private const int ScreenHeight = 100 + 2;
-        private const int Speed = 10;
-
         private static ConsoleKey Key = default;
         private static bool GameOver = false;
-        private static (int X, int Y) Position = (0 + 1, 0 + 1);
-        private static char[] Map = new char[ScreenWidth * ScreenHeight];
+        private static (int Left, int Top) Position = (1, 1);
+        private static Queue<(int, int)> Coords = new();
 
         private static Thread Game = new Thread(new ThreadStart(Move));
         private static Thread Launcher = new Thread(new ThreadStart(Launch));
@@ -22,11 +19,9 @@ namespace ConsoleSnake
         static void Main(string[] args)
         {
             Console.SetWindowPosition(0, 0);
-            Console.SetWindowSize(ScreenWidth, ScreenHeight);
-            Console.SetBufferSize(ScreenWidth, ScreenHeight);
+            Console.SetWindowSize(GameSettings.MapSize, GameSettings.MapSize);
+            Console.SetBufferSize(GameSettings.MapSize, GameSettings.MapSize);
             Console.CursorVisible = false;
-
-            Render();
 
             Launcher.Start();
 
@@ -40,18 +35,17 @@ namespace ConsoleSnake
             Thread.Sleep(500);
 
             Console.Clear();
-            
-            Console.WriteLine("Game over!");
 
             Console.ReadKey(true);
         }
 
 
-        private static void ClearMap() => Array.Fill(Map, ' ');
-
-
         private static void Launch()
         {
+            RenderWall();
+
+            RenderPosition();
+
             while (true)
             {
                 var keyInfo = Console.ReadKey();
@@ -65,25 +59,31 @@ namespace ConsoleSnake
             }
         }
 
-        private static void Render()
+
+        private static void ClearPixel((int Left, int Top) currentPosition)
         {
-            Console.SetCursorPosition(0, 0);
+            for (int i = 0; i < GameSettings.PixelSize; i++)
+            {
+                Console.SetCursorPosition(currentPosition.Left * GameSettings.PixelSize, 
+                                          currentPosition.Top * GameSettings.PixelSize + i);
 
-            ClearMap();
+                char[] output = new char[GameSettings.PixelSize];
 
-            SetWall();
+                Array.Fill(output, ' ');
 
-            SetPosition();
-
-            Console.WriteLine(Map);
+                Console.Write(output);
+            }
         }
 
 
-        private static void SetPosition()
+        private static void RenderPosition()
         {
-            int positionIndex = Map.Length - ScreenWidth * (Position.Y + 1) + Position.X;
+            if (Coords.TryDequeue(out (int, int) result))
+                ClearPixel(result);
 
-            Map[positionIndex] = '#';
+            var worm = new Pixel(Position.Left, Position.Top, '#');
+
+            worm.Draw();
         }
 
 
@@ -91,32 +91,33 @@ namespace ConsoleSnake
         {
             while (true)
             {
+                Coords.Enqueue(Position);
+
                 switch (Key)
                 {
                     case ConsoleKey.UpArrow:
-                        Position.Y++;
+                        Position.Top--;
                         break;
 
                     case ConsoleKey.DownArrow:
-                        Position.Y--;
+                        Position.Top++;
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        Position.X--;
+                        Position.Left--;
                         break;
 
                     case ConsoleKey.RightArrow:
-                        Position.X++;
+                        Position.Left++;
                         break;
                 }
 
                 if (!IsValidPosition())
                     break;
 
-                Render();
+                RenderPosition();
 
-                Thread.Sleep(Speed);
-
+                Thread.Sleep(GameSettings.Speed);
             }
 
             GameOver = true;
@@ -125,22 +126,31 @@ namespace ConsoleSnake
 
         private static bool IsValidPosition()
         {
-            return (Position.Y < ScreenHeight - 3 && Position.Y >= 1) &&
-                   (Position.X < ScreenWidth - 1 && Position.X >= 1);
+            return (Position.Top < GameSettings.MapSizeInPixels && Position.Top > 0) &&
+                   (Position.Left < GameSettings.MapSizeInPixels && Position.Left > 0);
         }
 
 
-        private static void SetWall()
+        private static void RenderWall()
         {
-            char c = '+';
+            char wallSymbol = '+';
 
-            Array.Fill(Map, c, ScreenWidth * 2, ScreenWidth);
-            Array.Fill(Map, c, Map.Length - ScreenWidth, ScreenWidth);
-
-            for (int i = ScreenWidth * 2; i < ScreenWidth * ScreenHeight; i += ScreenWidth)
+            for (int i = 0; i < GameSettings.MapSizeInPixels + 1; i++)
             {
-                Map[i - 1] = c;
-                Map[i - ScreenWidth] = c;
+                var pixel_1 = new Pixel(0, i, wallSymbol);
+                var pixel_2 = new Pixel(GameSettings.MapSizeInPixels, i, wallSymbol);
+
+                pixel_1.Draw();
+                pixel_2.Draw();
+            }
+
+            for (int i = 1; i < GameSettings.MapSizeInPixels; i++)
+            {
+                var pixel_1 = new Pixel(i, 0, wallSymbol);
+                var pixel_2 = new Pixel(i, GameSettings.MapSizeInPixels, wallSymbol);
+
+                pixel_1.Draw();
+                pixel_2.Draw();
             }
         }
     }
