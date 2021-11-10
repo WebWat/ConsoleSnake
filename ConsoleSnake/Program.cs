@@ -134,6 +134,8 @@ namespace ConsoleSnake
             }
 
             GameOver = true;
+
+            Environment.Exit(0);
         }
 
 
@@ -160,8 +162,8 @@ namespace ConsoleSnake
         {
             do
             {
-                int left = Random.Next(2, GameSettings.MapSizeInPixels);
-                int top = Random.Next(2, GameSettings.MapSizeInPixels);
+                int left = Random.Next(3, GameSettings.MapSizeInPixels - 1);
+                int top = Random.Next(3, GameSettings.MapSizeInPixels - 1);
 
                 AppleCoords = (left, top);
             }
