@@ -17,7 +17,6 @@ namespace ConsoleSnake
         private static int SnakeLength = 1;
 
         private static Thread Game = new Thread(new ThreadStart(Move));
-        private static Thread Launcher = new Thread(new ThreadStart(Launch));
 
         static void Main(string[] args)
         {
@@ -26,28 +25,13 @@ namespace ConsoleSnake
             Console.SetBufferSize(GameSettings.MapSize, GameSettings.MapSize);
             Console.CursorVisible = false;
 
-            Launcher.Start();
-
-            while (!GameOver)
-            {
-                Thread.Sleep(5);
-            }
-
-            Launcher.Interrupt();
-
-            Console.ReadKey(true);
-        }
-
-
-        private static void Launch()
-        {
             RenderWall();
 
             RenderPosition();
 
             RenderApple();
 
-            while (true)
+            while (!GameOver)
             {
                 var keyInfo = Console.ReadKey();
 
@@ -58,6 +42,35 @@ namespace ConsoleSnake
                     Game.Start();
                 }
             }
+
+            Console.Clear();
+            Console.SetCursorPosition(0, 0);
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.WriteLine(
+@"
+**********    ******    ***      ***  *********
+**********   ***  ***   ****    ****  *********
+***          ***  ***   *****  *****  ***      
+***   ****  **********  ************  *********
+***   ****  **********  ***  **  ***  *********
+***    ***  ***    ***  ***      ***  ***      
+**********  ***    ***  ***      ***  *********
+**********  ***    ***  ***      ***  *********
+");
+            Console.WriteLine(
+@"
+  ******    ***      ***  *********  ********
+ ********   ***      ***  *********  *********
+***    ***   ***    ***   ***        ***   ****
+***    ***   ***    ***   *********  ***  ****
+***    ***    ***  ***    *********  ********
+***    ***     ******     ***        *******
+ ********       ****      *********  ***  ***
+  ******         **       *********  ***   ****
+");
+
+            Console.ReadKey(true);
         }
 
 
@@ -92,26 +105,23 @@ namespace ConsoleSnake
             {
                 Coords.Enqueue(Position);
 
-                lock (Locker)
+                switch (Key)
                 {
-                    switch (Key)
-                    {
-                        case ConsoleKey.UpArrow:
-                            Position.Top--;
-                            break;
+                    case ConsoleKey.UpArrow:
+                        Position.Top--;
+                        break;
 
-                        case ConsoleKey.DownArrow:
-                            Position.Top++;
-                            break;
+                    case ConsoleKey.DownArrow:
+                        Position.Top++;
+                        break;
 
-                        case ConsoleKey.LeftArrow:
-                            Position.Left--;
-                            break;
+                    case ConsoleKey.LeftArrow:
+                        Position.Left--;
+                        break;
 
-                        case ConsoleKey.RightArrow:
-                            Position.Left++;
-                            break;
-                    }
+                    case ConsoleKey.RightArrow:
+                        Position.Left++;
+                        break;
                 }
 
                 if (!IsValidPosition() || IsSnakeTale())
@@ -134,8 +144,6 @@ namespace ConsoleSnake
             }
 
             GameOver = true;
-
-            Environment.Exit(0);
         }
 
 
