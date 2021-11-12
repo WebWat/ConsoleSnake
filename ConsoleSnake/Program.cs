@@ -44,6 +44,8 @@ namespace ConsoleSnake
                 }
             }
 
+            Coords.Clear();
+
             Console.Clear();     
             Console.SetCursorPosition(0, 0);
 
