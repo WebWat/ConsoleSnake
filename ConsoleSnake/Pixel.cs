@@ -25,7 +25,7 @@ namespace ConsoleSnake
 
                 Console.ForegroundColor = color;
                 Console.Write(new string(Symbol, GameSettings.PixelSize));
-                Console.ForegroundColor = default;
+                Console.ForegroundColor = ConsoleColor.White;
             }
         }
     }

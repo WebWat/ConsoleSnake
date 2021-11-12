@@ -15,6 +15,7 @@ namespace ConsoleSnake
         private static object Locker = new object();
         private static (int Left, int Top) AppleCoords = new();
         private static int SnakeLength = 1;
+        private static int Score = 0;
 
         private static Thread Game = new Thread(new ThreadStart(Move));
 
@@ -43,32 +44,13 @@ namespace ConsoleSnake
                 }
             }
 
-            Console.Clear();
+            Console.Clear();     
             Console.SetCursorPosition(0, 0);
-            Console.ForegroundColor = ConsoleColor.White;
 
-            Console.WriteLine(
-@"
-**********    ******    ***      ***  *********
-**********   ***  ***   ****    ****  *********
-***          ***  ***   *****  *****  ***      
-***   ****  **********  ************  *********
-***   ****  **********  ***  **  ***  *********
-***    ***  ***    ***  ***      ***  ***      
-**********  ***    ***  ***      ***  *********
-**********  ***    ***  ***      ***  *********
-");
-            Console.WriteLine(
-@"
-  ******    ***      ***  *********  ********
- ********   ***      ***  *********  *********
-***    ***   ***    ***   ***        ***   ****
-***    ***   ***    ***   *********  ***  ****
-***    ***    ***  ***    *********  ********
-***    ***     ******     ***        *******
- ********       ****      *********  ***  ***
-  ******         **       *********  ***   ****
-");
+            Writer.PrintLine("game", ConsoleColor.Red);
+            Writer.PrintLine("over!", ConsoleColor.Red);
+            Writer.Print("score: " + Score, ConsoleColor.Cyan);
+
 
             Console.ReadKey(true);
         }
@@ -134,6 +116,7 @@ namespace ConsoleSnake
                     Coords.Enqueue(Position);
 
                     SnakeLength++;
+                    Score += 10;
 
                     RenderApple();
                 }
