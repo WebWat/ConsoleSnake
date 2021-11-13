@@ -8,13 +8,14 @@ namespace ConsoleSnake
     class Program
     {
         private static ConsoleKey Key = default;
+        private static ConsoleKey LastKey = default;
         private static bool GameOver = false;
         private static (int Left, int Top) Position = (1, 1);
         private static Queue<(int, int)> Coords = new();
         private static Random Random = new Random();
-        private static object Locker = new object();
         private static (int Left, int Top) AppleCoords = new();
         private static int SnakeLength = 1;
+        private static bool IsOppositeKey = false;
         private static int Score = 0;
 
         private static Thread Game = new Thread(new ThreadStart(Move));
@@ -36,6 +37,9 @@ namespace ConsoleSnake
             {
                 var keyInfo = Console.ReadKey();
 
+                if (!IsOppositeKey)
+                    LastKey = Key;
+
                 Key = keyInfo.Key;
 
                 if (!Game.IsAlive && Game.ThreadState != ThreadState.Stopped)
@@ -51,7 +55,7 @@ namespace ConsoleSnake
 
             Writer.PrintLine("game", ConsoleColor.Red);
             Writer.PrintLine("over!", ConsoleColor.Red);
-            Writer.Print("score: " + Score, ConsoleColor.Cyan);
+            Writer.Print("score:" + Score, ConsoleColor.Cyan);
 
 
             Console.ReadKey(true);
@@ -92,19 +96,55 @@ namespace ConsoleSnake
                 switch (Key)
                 {
                     case ConsoleKey.UpArrow:
-                        Position.Top--;
+                        if (LastKey == ConsoleKey.DownArrow)
+                        {
+                            ++Position.Top;
+                            IsOppositeKey = true;
+                        }
+                        else
+                        {
+                            --Position.Top;
+                            IsOppositeKey = false;
+                        }
                         break;
 
                     case ConsoleKey.DownArrow:
-                        Position.Top++;
+                        if (LastKey == ConsoleKey.UpArrow)
+                        {
+                            --Position.Top;
+                            IsOppositeKey = true;
+                        }
+                        else
+                        {
+                            ++Position.Top;
+                            IsOppositeKey = false;
+                        }
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        Position.Left--;
+                        if (LastKey == ConsoleKey.RightArrow)
+                        {
+                            ++Position.Left;
+                            IsOppositeKey = true;
+                        }
+                        else
+                        {
+                            --Position.Left;
+                            IsOppositeKey = false;
+                        }
                         break;
 
                     case ConsoleKey.RightArrow:
-                        Position.Left++;
+                        if (LastKey == ConsoleKey.LeftArrow)
+                        {
+                            --Position.Left;
+                            IsOppositeKey = true;
+                        }
+                        else
+                        {
+                            ++Position.Left;
+                            IsOppositeKey = false;
+                        }
                         break;
                 }
 
