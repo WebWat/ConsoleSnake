@@ -47,7 +47,7 @@ public static class Writer
                     {
                         var pixel = new Pixel(left, top, '*');
                         pixel.Draw(color);
-                        Thread.Sleep(10);
+                        Thread.Sleep(1);
                     }
 
                     left++;

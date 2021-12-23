@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 // ... only supported on: 'windows'
 #pragma warning disable CA1416
@@ -9,17 +10,12 @@ namespace ConsoleSnake;
 class Program
 {
     private static ConsoleKey Key = default;
-    private static ConsoleKey LastKey = default;
-    private static bool GameOver = false;
     private static (int Left, int Top) Position = (1, 1);
     private static Queue<(int, int)> Coords = new();
     private static Random Random = new Random();
     private static (int Left, int Top) AppleCoords = new();
     private static int SnakeLength = 1;
-    private static bool IsOppositeKey = false;
     private static int Score = 0;
-
-    private static Thread Game = new Thread(new ThreadStart(Move));
 
     static void Main(string[] args)
     {
@@ -34,22 +30,9 @@ class Program
 
         RenderApple();
 
-        while (!GameOver)
-        {
-            var keyInfo = Console.ReadKey();
+        Key = Console.ReadKey(true).Key;
 
-            if (!IsOppositeKey)
-                LastKey = Key;
-
-            Key = keyInfo.Key;
-
-            if (!Game.IsAlive && Game.ThreadState != ThreadState.Stopped)
-            {
-                Game.Start();
-            }
-        }
-
-        Coords.Clear();
+        StartGame();
 
         Console.Clear();
         Console.SetCursorPosition(0, 0);
@@ -58,7 +41,7 @@ class Program
         Writer.PrintLine("over!", ConsoleColor.Red);
         Writer.Print("score:" + Score, ConsoleColor.Cyan);
 
-
+        // Need fix.
         Console.ReadKey(true);
     }
 
@@ -88,64 +71,30 @@ class Program
     }
 
 
-    private static void Move()
+    private static void StartGame()
     {
         while (true)
         {
             Coords.Enqueue(Position);
 
+            Key = GetDirectionKey();
+
             switch (Key)
             {
                 case ConsoleKey.UpArrow:
-                    if (LastKey == ConsoleKey.DownArrow)
-                    {
-                        ++Position.Top;
-                        IsOppositeKey = true;
-                    }
-                    else
-                    {
-                        --Position.Top;
-                        IsOppositeKey = false;
-                    }
+                    --Position.Top;
                     break;
 
-                case ConsoleKey.DownArrow:
-                    if (LastKey == ConsoleKey.UpArrow)
-                    {
-                        --Position.Top;
-                        IsOppositeKey = true;
-                    }
-                    else
-                    {
-                        ++Position.Top;
-                        IsOppositeKey = false;
-                    }
+                case ConsoleKey.DownArrow:      
+                    ++Position.Top;                 
                     break;
 
-                case ConsoleKey.LeftArrow:
-                    if (LastKey == ConsoleKey.RightArrow)
-                    {
-                        ++Position.Left;
-                        IsOppositeKey = true;
-                    }
-                    else
-                    {
-                        --Position.Left;
-                        IsOppositeKey = false;
-                    }
+                case ConsoleKey.LeftArrow:            
+                    --Position.Left;                    
                     break;
 
                 case ConsoleKey.RightArrow:
-                    if (LastKey == ConsoleKey.LeftArrow)
-                    {
-                        --Position.Left;
-                        IsOppositeKey = true;
-                    }
-                    else
-                    {
-                        ++Position.Left;
-                        IsOppositeKey = false;
-                    }
+                    ++Position.Left;                    
                     break;
             }
 
@@ -161,6 +110,8 @@ class Program
                 SnakeLength++;
                 Score += 10;
 
+                Task.Run(() => Console.Beep(500, 200));
+
                 RenderApple();
             }
 
@@ -169,7 +120,9 @@ class Program
             Thread.Sleep(GameSettings.Speed);
         }
 
-        GameOver = true;
+        Coords.Clear();
+
+        Task.Run(() => Console.Beep(170, 800));
     }
 
 
@@ -230,6 +183,8 @@ class Program
 
             pixel_1.Draw();
             pixel_2.Draw();
+
+            Thread.Sleep(1);
         }
 
         for (int i = 1; i < GameSettings.MapSizeInPixels; i++)
@@ -239,7 +194,28 @@ class Program
 
             pixel_1.Draw();
             pixel_2.Draw();
+
+            Thread.Sleep(1);
         }
+    }
+
+    private static ConsoleKey GetDirectionKey()
+    {
+        if (!Console.KeyAvailable)
+        {
+            return Key;
+        }
+        
+        var key = Console.ReadKey(true).Key;
+
+        return key switch
+        {
+            ConsoleKey.UpArrow when Key != ConsoleKey.DownArrow => ConsoleKey.UpArrow,
+            ConsoleKey.DownArrow when Key != ConsoleKey.UpArrow => ConsoleKey.DownArrow,
+            ConsoleKey.LeftArrow when Key != ConsoleKey.RightArrow => ConsoleKey.LeftArrow,
+            ConsoleKey.RightArrow when Key != ConsoleKey.LeftArrow => ConsoleKey.RightArrow,
+            _ => Key
+        };
     }
 }
 #pragma warning restore CA1416
