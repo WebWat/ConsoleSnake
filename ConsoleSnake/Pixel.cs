@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace ConsoleSnake;
+
 public struct Pixel
 {
     public int Left { get; private set; }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 // ... only supported on: 'windows'
 #pragma warning disable CA1416
 namespace ConsoleSnake;
+
 class Program
 {
     private static ConsoleKey Key = default;
@@ -41,8 +42,7 @@ class Program
         Writer.PrintLine("over!", ConsoleColor.Red);
         Writer.Print("score:" + Score, ConsoleColor.Cyan);
 
-        // Need fix.
-        Console.ReadKey(true);
+        Console.ReadLine();
     }
 
 

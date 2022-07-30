@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 namespace ConsoleSnake;
+
 public static class Writer
 {
     public static Dictionary<char, int[,]> Characters = new Dictionary<char, int[,]>()
